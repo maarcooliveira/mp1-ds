@@ -26,7 +26,7 @@ public class Main {
         }
 
         String name = args[0];
-        Server s = new Server(new Starter ("config.txt"), name);
+        Server s = new Server(new Starter("config.txt"), name);
         s.start();
 
     }

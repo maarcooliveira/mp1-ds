@@ -16,7 +16,7 @@ public class Starter {
     private ArrayList<String> names;
     private ArrayList<String> addresses;
     private ArrayList<Integer> ports;
-    private ArrayList<Float> delays;
+    private ArrayList<Integer> delays;
 
     /**
      * Reads all entries of a configuration file and creates a server for every entry.
@@ -44,7 +44,7 @@ public class Starter {
             names.add(line[0]);
             addresses.add(line[1]);
             ports.add(Integer.valueOf(line[2]));
-            delays.add(Float.valueOf(line[3]));
+            delays.add(Integer.valueOf(line[3]));
         }
     }
 

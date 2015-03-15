@@ -2,6 +2,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * Created by Marco Andre De Oliveira <mdeoliv2@illinois.edu>
@@ -11,13 +13,16 @@ public class Server {
     static String serverId;
     static String serverAddress;
     static int serverPort;
-    static float serverMaxDelay;
+    static int serverMaxDelay;
+    static Starter config;
+    static ArrayList<Long> delayList = new ArrayList<Long>();
 
-    public Server(String id, String address, int port, float delay) {
-        this.serverId = id;
-        this.serverAddress = address;
-        this.serverPort = port;
-        this.serverMaxDelay = delay;
+    public Server(Starter starter, String name) {
+        config = starter;
+        serverId = name;
+        serverAddress = config.getAddress(name);
+        serverPort = config.getPort(name);
+        serverMaxDelay = config.getDelay(name);
     }
 
     public void start() throws IOException {
@@ -25,21 +30,20 @@ public class Server {
 
         new ServerT().start();
         new ClientT().start();
-
     }
 
     private static class ClientT extends Thread {
 
         public void run() {
             try {
-                int clientToPort;
                 BufferedReader userMessage = new BufferedReader(new InputStreamReader(System.in));
-                String cmd[];
-                String serverAddress = "localhost";
-                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 
+                String cmd[];
                 Socket socket;
+                String destinationAddress;
+                int destinationPort;
                 DataOutputStream messageToServer;
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 
                 while(true) {
                     cmd = userMessage.readLine().split(" ");
@@ -47,31 +51,23 @@ public class Server {
                     if(cmd.length != 3) {
                         System.out.println("Use the format: <command> <message> <destinationServerName>");
                     }
-                    String message = cmd[1];
-                    String toServer = cmd[2].toUpperCase();
-                    if(toServer.equals("A")) {
-                        clientToPort = 9090;
-                    }
-                    else if(toServer.equals("B")) {
-                        clientToPort = 9091;
-                    }
-                    else if(toServer.equals("C")) {
-                        clientToPort = 9092;
-                    }
-                    else { //It's D server
-                        clientToPort = 9093;
-                    }
+                    else {
+                        String message = cmd[1];
+                        String destinationName = cmd[2].toUpperCase();
+                        destinationAddress = config.getAddress(destinationName);
+                        destinationPort = config.getPort(destinationName);
 
-                    socket = new Socket(serverAddress, clientToPort);
-                    messageToServer = new DataOutputStream(socket.getOutputStream());
-                    messageToServer.writeBytes(message);
+                        socket = new Socket(destinationAddress, destinationPort);
+                        messageToServer = new DataOutputStream(socket.getOutputStream());
+                        messageToServer.writeBytes(destinationName + " " + message);
 
-                    System.out.println("Sent \"" + message + "\" to " + toServer + ", system time is " + sdf.format(System.currentTimeMillis()));
+                        System.out.println("Sent \"" + message + "\" to " + destinationName + ", system time is "
+                                + sdf.format(System.currentTimeMillis()));
 
-                    messageToServer.close();
-                    socket.close();
+                        messageToServer.close();
+                        socket.close();
+                    }
                 }
-
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -83,27 +79,62 @@ public class Server {
 
     private static class ServerT extends Thread {
 
+
         public void run() {
             try {
                 ServerSocket listener = new ServerSocket(serverPort);
+                MessageT mt = new MessageT();
+                mt.start();
 
-                while(true){
+                while(true) {
                     Socket socket = listener.accept();
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 
-                    String message = messageFromClient.readLine();
+                    String[] inputs = messageFromClient.readLine().split(" ");
+                    Message message = new Message(inputs, System.currentTimeMillis() + config.setDelay(serverMaxDelay)*1000);
 
-                    sleep((long) (serverMaxDelay*1000));
-                    System.out.println("Received \"" + message + "\" from x, max delay is " + serverMaxDelay +"s, system time is " + sdf.format(System.currentTimeMillis()));
+                    mt.add(message);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             } finally {
-                System.out.println("Connection with client closed");
             }
+        }
+    }
+
+    private static class Message {
+        String[] msg;
+        long time;
+
+        public Message(String[] msg, long time) {
+            this.msg = msg;
+            this.time = time;
+        }
+    }
+
+    private static class MessageT extends Thread {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+        volatile LinkedList<Message> list = new LinkedList<Message>();
+
+        public void run() {
+            while(true) {
+                if(list.size() > 0) {
+                    if(System.currentTimeMillis() >= list.get(0).time) {
+                        String[] msg = list.get(0).msg;
+                        list.remove(0);
+
+                        String origin = msg[0];
+                        String message = msg[1];
+
+                        System.out.println("Received \"" + message + "\" from " + origin + ", Max delay is " + serverMaxDelay
+                                + "s, system time is " + sdf.format(System.currentTimeMillis()));
+                    }
+                }
+            }
+        }
+
+        public void add(Message msg) {
+            list.push(msg);
         }
     }
 }
