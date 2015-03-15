@@ -1,9 +1,8 @@
 import java.io.IOException;
 
 /**
- * @author Marco Andre De Oliveira <mdeoliv2@illinois.edu>
- * @version 1.0
- * @since 3/14/15
+ * Created by Marco Andre De Oliveira <mdeoliv2@illinois.edu>
+ * Date: 3/14/15
  */
 public class Main {
 
