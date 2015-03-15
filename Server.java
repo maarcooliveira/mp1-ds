@@ -11,9 +11,9 @@ public class Server {
     static String serverId;
     static String serverAddress;
     static int serverPort;
-    static int serverMaxDelay;
+    static float serverMaxDelay;
 
-    public Server(String id, String address, int port, int delay) {
+    public Server(String id, String address, int port, float delay) {
         this.serverId = id;
         this.serverAddress = address;
         this.serverPort = port;
@@ -94,7 +94,7 @@ public class Server {
 
                     String message = messageFromClient.readLine();
 
-                    sleep(serverMaxDelay*1000);
+                    sleep((long) (serverMaxDelay*1000));
                     System.out.println("Received \"" + message + "\" from x, max delay is " + serverMaxDelay +"s, system time is " + sdf.format(System.currentTimeMillis()));
                 }
             } catch (IOException e) {
