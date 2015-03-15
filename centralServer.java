@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by Bruno on 3/15/2015.
  */
-public class centralServer {
+public class CentralServer {
 
     static String centralId;
     static String centralAddress;
@@ -22,7 +22,7 @@ public class centralServer {
     List<Socket> listSockets = new ArrayList<Socket>();
 
 
-    public centralServer(Starter starter) {
+    public CentralServer(Starter starter) {
         config = starter;
         centralId = "CENTRAL";
         centralAddress = config.getAddress(centralId);
@@ -46,5 +46,10 @@ public class centralServer {
                 }
             }
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        Starter starter = new Starter("config.txt");
+        CentralServer centralServer = new CentralServer(starter);
     }
 }
