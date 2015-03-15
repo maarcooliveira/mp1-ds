@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 public class Client {
     public static void main(String[] args) throws IOException {
         String serverAddress = "localhost";
-        Socket socket = new Socket(serverAddress, 9090);
+        Socket socket = new Socket(serverAddress, 9091);
 
         BufferedReader userMessage = new BufferedReader(new InputStreamReader(System.in));
         DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());

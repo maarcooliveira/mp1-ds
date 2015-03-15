@@ -22,39 +22,30 @@ public class Server {
 
     public void start() throws IOException {
         System.out.println("Server " + serverId + " started at " + serverAddress + ":" + serverPort);
-        ServerSocket listener = new ServerSocket(serverPort);
 
-        try {
+        new ServerT().start();
+        new ClientT().start();
 
-            while (true) {
-                new ServerT(listener.accept()).start();
-                new ClientT().start();
-            }
-        }
-        finally {
-            listener.close();
-        }
     }
 
     private static class ClientT extends Thread {
 
         public void run() {
             try {
+                int serverPort = 9090;
+                System.out.println("Running client mode, connected to port " + serverPort);
                 BufferedReader userMessage = new BufferedReader(new InputStreamReader(System.in));
-                String message = userMessage.readLine();
-                while(message != null) {
-                    String serverAddress = "localhost";
-                    Socket socket = new Socket(serverAddress, 9090);
-                    DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
+                String message;
+                String serverAddress = "localhost";
+                Socket socket = new Socket(serverAddress, serverPort);
+                DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
 
-                    messageToServer.writeBytes(message);
-
-                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
-
-                    System.out.println("Sent \"" + message + "\" to x, system time is " + sdf.format(System.currentTimeMillis()));
+                while(true) {
                     message = userMessage.readLine();
+                    messageToServer.writeBytes(message);
+                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+                    System.out.println("Sent \"" + message + "\" to x, system time is " + sdf.format(System.currentTimeMillis()));
                 }
-
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -66,25 +57,22 @@ public class Server {
 
 
     private static class ServerT extends Thread {
-        private Socket socket;
-
-        public ServerT(Socket socket) {
-            this.socket = socket;
-            System.out.println("Connection with new client established");
-        }
 
         public void run() {
             try {
+                ServerSocket listener = new ServerSocket(serverPort);
 
-                BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+                while(true){
+                    Socket socket = listener.accept();
+                    BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 
-                String message = messageFromClient.readLine();
+                    String message = messageFromClient.readLine();
 
-//                if (message.split(" ")[2].equals(serverId)){
                     sleep(serverMaxDelay*1000);
                     System.out.println("Received \"" + message + "\" from x, Max delay is " + serverMaxDelay +" s, system time is " + sdf.format(System.currentTimeMillis()));
-//                }
+
+                }
 
 
             } catch (IOException e) {
@@ -92,11 +80,6 @@ public class Server {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 System.out.println("Connection with client closed");
             }
         }
