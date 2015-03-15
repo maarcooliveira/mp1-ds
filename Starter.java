@@ -94,4 +94,21 @@ public class Starter {
         return new Random().nextInt(maxDelay + 1);
     }
 
+    /**
+     * Reads an input file, returning each line of it as a different command for the key-value system.
+     *
+     * @param fileName the name and location of the input file.
+     * @return an ArrayList of strings for each input.
+     * @throws IOException if the input file cannot be found.
+     */
+    protected ArrayList<String> readInput(String fileName) throws IOException{
+        ArrayList<String> allInputs = new ArrayList<String>();
+        Scanner sc = new Scanner(new File(fileName));
+        while(sc.hasNextLine()){
+            String line = sc.nextLine();
+            allInputs.add(line);
+        }
+        return allInputs;
+    }
+
 }
