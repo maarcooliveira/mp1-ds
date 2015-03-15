@@ -23,7 +23,7 @@ public class Starter {
      *
      * @throws IOException if the configuration file does not exist.
      */
-    public Starter (String configName) throws IOException{
+    public Starter(String configName) throws IOException {
         names = new ArrayList<String>();
         addresses = new ArrayList<String>();
         ports = new ArrayList<Integer>();
@@ -37,9 +37,9 @@ public class Starter {
      * @param fileName the name of the file being used for configuration.
      * @throws IOException if the file does not exist.
      */
-    protected void readConfig(String fileName) throws IOException{
+    protected void readConfig(String fileName) throws IOException {
         Scanner sc = new Scanner(new File(fileName));
-        while(sc.hasNextLine()){
+        while (sc.hasNextLine()) {
             String[] line = sc.nextLine().split(" ");
             names.add(line[0]);
             addresses.add(line[1]);
@@ -54,8 +54,8 @@ public class Starter {
      * @param serverName the server name.
      * @return a string containing the address, or <em>null</em>.
      */
-    protected String getAddress(String serverName){
-        if(names.contains(serverName))
+    protected String getAddress(String serverName) {
+        if (names.contains(serverName))
             return addresses.get(names.indexOf(serverName));
         else return null;
     }
@@ -66,8 +66,8 @@ public class Starter {
      * @param serverName the server name.
      * @return an integer containing the server port, or <em>null</em>.
      */
-    protected Integer getPort(String serverName){
-        if(names.contains(serverName))
+    protected Integer getPort(String serverName) {
+        if (names.contains(serverName))
             return ports.get(names.indexOf(serverName));
         else return null;
     }
@@ -78,8 +78,8 @@ public class Starter {
      * @param serverName the server name.
      * @return a float point number of the server's delay, or <em>null</em>.
      */
-    protected Integer getDelay(String serverName){
-        if(names.contains(serverName))
+    protected Integer getDelay(String serverName) {
+        if (names.contains(serverName))
             return delays.get(names.indexOf(serverName));
         else return null;
     }
@@ -90,25 +90,42 @@ public class Starter {
      * @param maxDelay the current maximum delay for the server.
      * @return a random integer between 0 (inclusive) and maxDelay (inclusive).
      */
-    protected int setDelay(int maxDelay){
+    protected int setDelay(int maxDelay) {
         return new Random().nextInt(maxDelay + 1);
     }
 
     /**
-     * Reads an input file, returning each line of it as a different command for the key-value system.
+     * Reads an input file, returning each line of it as a different command for the key-value system.*
      *
      * @param fileName the name and location of the input file.
      * @return an ArrayList of strings for each input.
      * @throws IOException if the input file cannot be found.
      */
-    protected ArrayList<String> readInput(String fileName) throws IOException{
+    protected ArrayList<String> readInput(String fileName) throws IOException {
         ArrayList<String> allInputs = new ArrayList<String>();
         Scanner sc = new Scanner(new File(fileName));
-        while(sc.hasNextLine()){
+        while (sc.hasNextLine()) {
             String line = sc.nextLine();
             allInputs.add(line);
         }
         return allInputs;
     }
 
+    /**
+     * Prints out all commands after a user requested the command --help or typed an invalid command.
+     */
+    protected void askForHelp() {
+        System.out.println("Valid commands for the key-value interface:");
+        System.out.println("");
+        System.out.println("    delay <seconds>");
+        System.out.println("    delete <key>");
+        System.out.println("    get <key> <model>");
+        System.out.println("    insert <key> <value> <model>");
+        System.out.println("    update <key> <value> <model>");
+        System.out.println("    search <key>");
+        System.out.println("    send <message> <destinationServerName>");
+        System.out.println("    show-all");
+        System.out.println("    --help");
+        System.out.println("");
+    }
 }
