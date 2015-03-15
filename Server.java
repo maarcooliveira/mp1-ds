@@ -32,19 +32,44 @@ public class Server {
 
         public void run() {
             try {
-                int serverPort = 9090;
-                System.out.println("Running client mode, connected to port " + serverPort);
+                int clientToPort;
                 BufferedReader userMessage = new BufferedReader(new InputStreamReader(System.in));
-                String message;
+                String cmd[];
                 String serverAddress = "localhost";
-                Socket socket = new Socket(serverAddress, serverPort);
-                DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+
+                Socket socket;
+                DataOutputStream messageToServer;
 
                 while(true) {
-                    message = userMessage.readLine();
+                    cmd = userMessage.readLine().split(" ");
+
+                    if(cmd.length != 3) {
+                        System.out.println("Use the format: <command> <message> <destinationServerName>");
+                    }
+                    String message = cmd[1];
+                    String toServer = cmd[2].toUpperCase();
+                    if(toServer.equals("A")) {
+                        clientToPort = 9090;
+                    }
+                    else if(toServer.equals("B")) {
+                        clientToPort = 9091;
+                    }
+                    else if(toServer.equals("C")) {
+                        clientToPort = 9092;
+                    }
+                    else { //It's D server
+                        clientToPort = 9093;
+                    }
+
+                    socket = new Socket(serverAddress, clientToPort);
+                    messageToServer = new DataOutputStream(socket.getOutputStream());
                     messageToServer.writeBytes(message);
-                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
-                    System.out.println("Sent \"" + message + "\" to x, system time is " + sdf.format(System.currentTimeMillis()));
+
+                    System.out.println("Sent \"" + message + "\" to " + toServer + ", system time is " + sdf.format(System.currentTimeMillis()));
+
+                    messageToServer.close();
+                    socket.close();
                 }
 
             } catch (IOException e) {
@@ -70,11 +95,8 @@ public class Server {
                     String message = messageFromClient.readLine();
 
                     sleep(serverMaxDelay*1000);
-                    System.out.println("Received \"" + message + "\" from x, Max delay is " + serverMaxDelay +" s, system time is " + sdf.format(System.currentTimeMillis()));
-
+                    System.out.println("Received \"" + message + "\" from x, max delay is " + serverMaxDelay +"s, system time is " + sdf.format(System.currentTimeMillis()));
                 }
-
-
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
