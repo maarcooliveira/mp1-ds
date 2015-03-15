@@ -1,13 +1,18 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
- * Created by Marco Andre De Oliveira <mdeoliv2@illinois.edu>
- * Date: 3/14/15
+ * Creates a server that sends messages to other servers in a simulated distributed system.
+ *
+ * @author Marco Andre De Oliveira <mdeoliv2@illinois.edu>
+ * @version 1.0
+ * @since 3/15/15
  */
 public class Server {
     static String serverId;
@@ -15,8 +20,13 @@ public class Server {
     static int serverPort;
     static int serverMaxDelay;
     static Starter config;
-    static ArrayList<Long> delayList = new ArrayList<Long>();
 
+    /**
+     * Creates a server based on a name and a Starter object will all the specifications.
+     *
+     * @param starter the Starter object reading the required configuration file.
+     * @param name    a name for the server.
+     */
     public Server(Starter starter, String name) {
         config = starter;
         serverId = name;
@@ -25,6 +35,12 @@ public class Server {
         serverMaxDelay = config.getDelay(name);
     }
 
+    /**
+     * Starts two threads for the system, one responsible for the client side (sending messages to other servers) and
+     * the server side (receiving messages from clients).
+     *
+     * @throws IOException if it is impossible to read the configuration file or the address/port is invalid.
+     */
     public void start() throws IOException {
         System.out.println("Server " + serverId + " started at " + serverAddress + ":" + serverPort);
 
@@ -32,6 +48,13 @@ public class Server {
         new ClientT().start();
     }
 
+    /**
+     * Thread responsible for the client side.
+     *
+     * @author Marco Andre de Oliveira <mdeoliv2@illinois.edu>
+     * @version 1.0
+     * @since 3/15/15
+     */
     private static class ClientT extends Thread {
 
         public void run() {
@@ -45,13 +68,12 @@ public class Server {
                 DataOutputStream messageToServer;
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 
-                while(true) {
+                while (true) {
                     cmd = userMessage.readLine().split(" ");
 
-                    if(cmd.length != 3) {
+                    if (cmd.length != 3) {
                         System.out.println("Use the format: <command> <message> <destinationServerName>");
-                    }
-                    else {
+                    } else {
                         String message = cmd[1];
                         String destinationName = cmd[2].toUpperCase();
                         destinationAddress = config.getAddress(destinationName);
@@ -76,7 +98,13 @@ public class Server {
         }
     }
 
-
+    /**
+     * Thread responsible for the server side.
+     *
+     * @author Marco Andre de Oliveira <mdeoliv2@illinois.edu>
+     * @version 1.0
+     * @since 3/15/15
+     */
     private static class ServerT extends Thread {
 
 
@@ -86,12 +114,12 @@ public class Server {
                 MessageT mt = new MessageT();
                 mt.start();
 
-                while(true) {
+                while (true) {
                     Socket socket = listener.accept();
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                     String[] inputs = messageFromClient.readLine().split(" ");
-                    Message message = new Message(inputs, System.currentTimeMillis() + config.setDelay(serverMaxDelay)*1000);
+                    Message message = new Message(inputs, System.currentTimeMillis() + config.setDelay(serverMaxDelay) * 1000);
 
                     mt.add(message);
                 }
@@ -102,6 +130,13 @@ public class Server {
         }
     }
 
+    /**
+     * Message object that keeps track of its content (as a String array) and timestamp.
+     *
+     * @author Marco Andre de Oliveira <mdeoliv2@illinois.edu>
+     * @version 1.0
+     * @since 3/15/15
+     */
     private static class Message {
         String[] msg;
         long time;
@@ -112,14 +147,21 @@ public class Server {
         }
     }
 
+    /**
+     * Thread that handles the messages being received in a server to guarantee FIFO ordering.
+     *
+     * @author Marco Andre de Oliveira <mdeoliv2@illinois.edu>
+     * @version 1.0
+     * @since 3/15/15
+     */
     private static class MessageT extends Thread {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         volatile LinkedList<Message> list = new LinkedList<Message>();
 
         public void run() {
-            while(true) {
-                if(list.size() > 0) {
-                    if(System.currentTimeMillis() >= list.get(0).time) {
+            while (true) {
+                if (list.size() > 0) {
+                    if (System.currentTimeMillis() >= list.get(0).time) {
                         String[] msg = list.get(0).msg;
                         list.remove(0);
 

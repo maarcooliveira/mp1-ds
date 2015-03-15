@@ -5,7 +5,7 @@ import java.io.IOException;
  *
  * @author Marco Andre De Oliveira <mdeoliv2@illinois.edu>
  * @version 1.0
- * @since 3/14/15
+ * @since 3/15/15
  */
 public class Main {
 
@@ -14,6 +14,8 @@ public class Main {
      *
      * Usage (in the terminal): java Main [serverName]
      * Example: java Main A
+     *
+     * If necessary, compile the Java files first with: javac *.java
      *
      * @param args all arguments required to create a server (4 in total).
      * @throws IOException if tried to read a configuration file that does not exist.

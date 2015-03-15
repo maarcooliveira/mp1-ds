@@ -5,11 +5,11 @@ import java.util.Random;
 import java.util.Scanner;
 
 /**
- * Disposable class that reads the configuration file directly.
+ * Reads the configuration file and sets the specifications for every server detailed on file.
  *
  * @author Cassio dos Santos Sousa
  * @version 1.0
- * @since 3/14/15
+ * @since 3/15/15
  */
 public class Starter {
 
