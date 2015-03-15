@@ -56,44 +56,123 @@ public class Server {
      * @since 3/15/15
      */
     private static class ClientT extends Thread {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+        Socket socket;
+        String destinationAddress;
+        int destinationPort;
+        DataOutputStream messageToServer;
 
         public void run() {
             try {
                 BufferedReader userMessage = new BufferedReader(new InputStreamReader(System.in));
-
                 String cmd[];
-                Socket socket;
-                String destinationAddress;
-                int destinationPort;
-                DataOutputStream messageToServer;
-                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 
                 while (true) {
                     cmd = userMessage.readLine().split(" ");
-
-                    if (cmd.length != 3) {
-                        System.out.println("Use the format: <command> <message> <destinationServerName>");
-                    } else {
-                        String message = cmd[1];
-                        String destinationName = cmd[2].toUpperCase();
-                        destinationAddress = config.getAddress(destinationName);
-                        destinationPort = config.getPort(destinationName);
-
-                        socket = new Socket(destinationAddress, destinationPort);
-                        messageToServer = new DataOutputStream(socket.getOutputStream());
-                        messageToServer.writeBytes(destinationName + " " + message);
-
-                        System.out.println("Sent \"" + message + "\" to " + destinationName + ", system time is "
-                                + sdf.format(System.currentTimeMillis()));
-
-                        messageToServer.close();
-                        socket.close();
-                    }
+                    executeCommand(cmd);
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                System.out.println("Client closed");
+                try {
+                    socket.close();
+                    System.out.println("Client closed");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private void executeCommand(String[] cmd) throws IOException {
+
+            if(cmd[0].equals("send")) {
+                if(cmd.length == 3) {
+                    String message = cmd[1];
+                    String destinationName = cmd[2].toUpperCase();
+                    destinationAddress = config.getAddress(destinationName);
+                    destinationPort = config.getPort(destinationName);
+
+                    socket = new Socket(destinationAddress, destinationPort);
+                    messageToServer = new DataOutputStream(socket.getOutputStream());
+                    messageToServer.writeBytes(serverId + " " + message);
+
+                    System.out.println("Sent \"" + message + "\" to " + destinationName + ", system time is "
+                            + sdf.format(System.currentTimeMillis()));
+
+                    messageToServer.close();
+                    socket.close();
+                }
+                else {
+                    System.out.println("Invalid format. Try: send <message> <destinationServerName>");
+                }
+            }
+            else if(cmd[0].equals("delete")) {
+                if(cmd.length == 2) {
+                    System.out.println("That's all, folks");
+                }
+                else {
+                    System.out.println("Invalid format. Try: delete <key>");
+                }
+            }
+            else if(cmd[0].equals("get")) {
+                if(cmd.length == 3) {
+                    System.out.println("That's all, folks");
+                }
+                else {
+                    System.out.println("Invalid format. Try: get <key> <model>");
+                }
+            }
+            else if(cmd[0].equals("insert")) {
+                if(cmd.length == 4) {
+                    System.out.println("That's all, folks");
+                }
+                else {
+                    System.out.println("Invalid format. Try: insert <key> <value> <model>");
+                }
+            }
+            else if(cmd[0].equals("update")) {
+                if(cmd.length == 4) {
+                    System.out.println("That's all, folks");
+                }
+                else {
+                    System.out.println("Invalid format. Try: update <key> <value> <model>");
+                }
+            }
+            else if(cmd[0].equals("show-all")) {
+                if(cmd.length == 1) {
+                    System.out.println("That's all, folks");
+                }
+                else {
+                    System.out.println("Invalid format. Try: show-all");
+                }
+            }
+            else if(cmd[0].equals("search")) {
+                if(cmd.length == 2) {
+                    System.out.println("That's all, folks");
+                }
+                else {
+                    System.out.println("Invalid format. Try: search <key>");
+                }
+            }
+            else if(cmd[0].equals("delay")) {
+                if(cmd.length == 2) {
+                    System.out.println("That's all, folks");
+                }
+                else {
+                    System.out.println("Invalid format. Try: delay <seconds>");
+                }
+            }
+            else if(cmd[0].equals("--help")) {
+                if(cmd.length == 1) {
+                    System.out.println("That's all, folks");
+                }
+                else {
+                    System.out.println("Invalid format. Try: delay <seconds>");
+                }
+            }
+            else {
+                System.out.println("Invalid command. Try: --help");
             }
         }
     }
