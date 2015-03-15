@@ -28,7 +28,7 @@ public class Server {
 
             while (true) {
                 new ServerT(listener.accept()).start();
-//                new ClientT().start();
+                new ClientT().start();
             }
         }
         finally {
@@ -44,7 +44,7 @@ public class Server {
                 String message = userMessage.readLine();
                 while(message != null) {
                     String serverAddress = "localhost";
-                    Socket socket = new Socket(serverAddress, 9091);
+                    Socket socket = new Socket(serverAddress, 9090);
                     DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
 
                     messageToServer.writeBytes(message);
@@ -81,10 +81,10 @@ public class Server {
 
                 String message = messageFromClient.readLine();
 
-                if (message.split(" ")[2].equals(serverId)){
+//                if (message.split(" ")[2].equals(serverId)){
                     sleep(serverMaxDelay*1000);
                     System.out.println("Received \"" + message + "\" from x, Max delay is " + serverMaxDelay +" s, system time is " + sdf.format(System.currentTimeMillis()));
-                }
+//                }
 
 
             } catch (IOException e) {
