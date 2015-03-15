@@ -110,4 +110,13 @@ public class Starter {
         }
         return allInputs;
     }
+
+    /**
+     * Applies a delay to the server. Being a thread, it only means the server may be put to sleep.
+     *
+     * @param timeInSeconds a floating point number containing the total delay time in seconds.
+     */
+    private void delay(float timeInSeconds) {
+        sleep(timeInSeconds * 1000.0);
+    }
 }
