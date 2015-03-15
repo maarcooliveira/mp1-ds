@@ -7,7 +7,7 @@ import java.util.Scanner;
 /**
  * Reads the configuration file and sets the specifications for every server detailed on file.
  *
- * @author Cassio dos Santos Sousa
+ * @author Cassio dos Santos Sousa <dssntss2@illinois.edu>
  * @version 1.0
  * @since 3/15/15
  */

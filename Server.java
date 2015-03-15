@@ -10,7 +10,7 @@ import java.util.LinkedList;
 /**
  * Creates a server that sends messages to other servers in a simulated distributed system.
  *
- * @author Marco Andre De Oliveira <mdeoliv2@illinois.edu>
+ * @author Bruno, Cassio, Marco
  * @version 1.0
  * @since 3/15/15
  */
@@ -51,7 +51,7 @@ public class Server {
     /**
      * Thread responsible for the client side.
      *
-     * @author Marco Andre de Oliveira <mdeoliv2@illinois.edu>
+     * @author Bruno, Cassio, Marco
      * @version 1.0
      * @since 3/15/15
      */
@@ -101,7 +101,7 @@ public class Server {
     /**
      * Thread responsible for the server side.
      *
-     * @author Marco Andre de Oliveira <mdeoliv2@illinois.edu>
+     * @author Bruno, Cassio, Marco
      * @version 1.0
      * @since 3/15/15
      */
@@ -133,7 +133,7 @@ public class Server {
     /**
      * Message object that keeps track of its content (as a String array) and timestamp.
      *
-     * @author Marco Andre de Oliveira <mdeoliv2@illinois.edu>
+     * @author Bruno, Cassio, Marco
      * @version 1.0
      * @since 3/15/15
      */
@@ -150,7 +150,7 @@ public class Server {
     /**
      * Thread that handles the messages being received in a server to guarantee FIFO ordering.
      *
-     * @author Marco Andre de Oliveira <mdeoliv2@illinois.edu>
+     * @author Bruno, Cassio, Marco
      * @version 1.0
      * @since 3/15/15
      */
