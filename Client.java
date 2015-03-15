@@ -6,8 +6,9 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 
 /**
- * Created by Marco Andre De Oliveira <mdeoliv2@illinois.edu>
- * Date: 3/14/15
+ * @author Marco Andre De Oliveira <mdeoliv2@illinois.edu>
+ * @version 1.0
+ * @since 3/14/15
  */
 public class Client {
     public static void main(String[] args) throws IOException {
