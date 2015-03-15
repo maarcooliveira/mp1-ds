@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -26,7 +27,7 @@ public class Starter {
         names = new ArrayList<String>();
         addresses = new ArrayList<String>();
         ports = new ArrayList<Integer>();
-        delays = new ArrayList<Float>();
+        delays = new ArrayList<Integer>();
         readConfig(configName);
     }
 
@@ -77,10 +78,20 @@ public class Starter {
      * @param serverName the server name.
      * @return a float point number of the server's delay, or <em>null</em>.
      */
-    protected Float getDelay(String serverName){
+    protected Integer getDelay(String serverName){
         if(names.contains(serverName))
             return delays.get(names.indexOf(serverName));
         else return null;
+    }
+
+    /**
+     * Sets a random delay time (in seconds) to a given message, based on a maximum value set for the server.
+     *
+     * @param maxDelay the current maximum delay for the server.
+     * @return a random integer between 0 (inclusive) and maxDelay (inclusive).
+     */
+    protected int setDelay(int maxDelay){
+        return new Random().nextInt(maxDelay + 1);
     }
 
 }
