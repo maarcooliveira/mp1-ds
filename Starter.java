@@ -110,22 +110,4 @@ public class Starter {
         }
         return allInputs;
     }
-
-    /**
-     * Prints out all commands after a user requested the command --help or typed an invalid command.
-     */
-    protected void askForHelp() {
-        System.out.println("Valid commands for the key-value interface:");
-        System.out.println("");
-        System.out.println("    delay <seconds>");
-        System.out.println("    delete <key>");
-        System.out.println("    get <key> <model>");
-        System.out.println("    insert <key> <value> <model>");
-        System.out.println("    update <key> <value> <model>");
-        System.out.println("    search <key>");
-        System.out.println("    send <message> <destinationServerName>");
-        System.out.println("    show-all");
-        System.out.println("    --help");
-        System.out.println("");
-    }
 }

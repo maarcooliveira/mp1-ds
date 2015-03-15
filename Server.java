@@ -164,16 +164,32 @@ public class Server {
                 }
             }
             else if(cmd[0].equals("--help")) {
-                if(cmd.length == 1) {
-                    System.out.println("That's all, folks");
-                }
-                else {
-                    System.out.println("Invalid format. Try: delay <seconds>");
-                }
+                if(cmd.length == 1)
+                    askForHelp();
+                else
+                    System.out.println("Invalid format. Try: --help");
             }
             else {
                 System.out.println("Invalid command. Try: --help");
             }
+        }
+
+        /**
+         * Prints out all commands after a user requested the command --help, shown after typing an invalid command.
+         */
+        protected void askForHelp() {
+            System.out.println("Valid commands for the key-value interface:");
+            System.out.println("");
+            System.out.println("    delay <seconds>");
+            System.out.println("    delete <key>");
+            System.out.println("    get <key> <model>");
+            System.out.println("    insert <key> <value> <model>");
+            System.out.println("    update <key> <value> <model>");
+            System.out.println("    search <key>");
+            System.out.println("    send <message> <destinationServerName>");
+            System.out.println("    show-all");
+            System.out.println("    --help");
+            System.out.println("");
         }
     }
 
