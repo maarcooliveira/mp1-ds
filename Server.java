@@ -184,7 +184,7 @@ public class Server {
      * @since 3/15/15
      */
     private static class ServerT extends Thread {
-
+        long maxTime = 0;
 
         public void run() {
             try {
@@ -197,7 +197,9 @@ public class Server {
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                     String[] inputs = messageFromClient.readLine().split(" ");
-                    Message message = new Message(inputs, System.currentTimeMillis() + config.setDelay(serverMaxDelay) * 1000);
+                    long time = Math.max(System.currentTimeMillis() + config.setDelay(serverMaxDelay) * 1000, maxTime);
+                    maxTime = time;
+                    Message message = new Message(inputs, time);
 
                     mt.add(message);
                 }
