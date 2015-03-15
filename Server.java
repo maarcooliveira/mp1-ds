@@ -4,8 +4,11 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 
 /**
- * Created by Marco Andre De Oliveira <mdeoliv2@illinois.edu>
- * Date: 3/14/15
+ * Creates a server that communicates with other server processes in a simulated distributed system.
+ *
+ * @author Marco Andre De Oliveira <mdeoliv2@illinois.edu>
+ * @version 1.0
+ * @since 3/14/15
  */
 public class Server {
     static String serverId;
@@ -14,10 +17,10 @@ public class Server {
     static int serverMaxDelay;
 
     public Server(String id, String address, int port, int delay) {
-        this.serverId = id;
-        this.serverAddress = address;
-        this.serverPort = port;
-        this.serverMaxDelay = delay;
+        serverId = id;
+        serverAddress = address;
+        serverPort = port;
+        serverMaxDelay = delay;
     }
 
     public void start() throws IOException {
