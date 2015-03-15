@@ -28,7 +28,7 @@ public class Main {
         String name = args[0];
         String address = args[1];
         int port = Integer.valueOf(args[2]);
-        int delay = Integer.valueOf(args[3]);
+        float delay = Float.valueOf(args[3]);
 
         Server s = new Server(name, address, port, delay);
         s.start();
