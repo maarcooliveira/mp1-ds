@@ -10,27 +10,23 @@ import java.io.IOException;
 public class Main {
 
     /**
-     * Creates a new server. The delay unit is seconds.
+     * Creates a new server based on the configurations shown in the config.txt file.
      *
-     * Usage (in the terminal): java Main [serverName] [IpAddress] [port] [delay]
-     * Example: java Main A localhost 8080 2
+     * Usage (in the terminal): java Main [serverName]
+     * Example: java Main A
      *
      * @param args all arguments required to create a server (4 in total).
-     * @throws IOException if tried to listen to a port or address that does not exist.
+     * @throws IOException if tried to read a configuration file that does not exist.
      */
     public static void main(String[] args) throws IOException {
 
-        if (args.length != 4) {
-            System.out.println("Usage: java Main [serverName] [IpAddress] [port] [delay]");
+        if (args.length != 1) {
+            System.out.println("Usage: java Main [serverName]");
             return;
         }
 
         String name = args[0];
-        String address = args[1];
-        int port = Integer.valueOf(args[2]);
-        float delay = Float.valueOf(args[3]);
-
-        Server s = new Server(name, address, port, delay);
+        Server s = new Server(new Starter ("config.txt"), name);
         s.start();
 
     }

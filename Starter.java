@@ -16,22 +16,18 @@ public class Starter {
     private ArrayList<String> addresses;
     private ArrayList<Integer> ports;
     private ArrayList<Float> delays;
-    private ArrayList<Server> servers;
 
     /**
      * Reads all entries of a configuration file and creates a server for every entry.
      *
      * @throws IOException if the configuration file does not exist.
      */
-    public Starter () throws IOException{
+    public Starter (String configName) throws IOException{
         names = new ArrayList<String>();
         addresses = new ArrayList<String>();
         ports = new ArrayList<Integer>();
         delays = new ArrayList<Float>();
-        servers = new ArrayList<Server>();
-        String configName = "config.txt";
         readConfig(configName);
-        createServers();
     }
 
     /**
@@ -52,12 +48,39 @@ public class Starter {
     }
 
     /**
-     * Creates a new server for every value stored in the arrays.
+     * Gets the address of a server given its name, or <em>null</em> otherwise.
+     *
+     * @param serverName the server name.
+     * @return a string containing the address, or <em>null</em>.
      */
-    protected void createServers(){
-        for(int i=0; i<names.size(); i++){
-            servers.add(new Server(names.get(i), addresses.get(i), ports.get(i), delays.get(i)));
-        }
+    protected String getAddress(String serverName){
+        if(names.contains(serverName))
+            return addresses.get(names.indexOf(serverName));
+        else return null;
+    }
+
+    /**
+     * Gets the port number of a server given its name, or <em>null</em> otherwise.
+     *
+     * @param serverName the server name.
+     * @return an integer containing the server port, or <em>null</em>.
+     */
+    protected Integer getPort(String serverName){
+        if(names.contains(serverName))
+            return ports.get(names.indexOf(serverName));
+        else return null;
+    }
+
+    /**
+     * Gets the delay of a server given its name, or <em>null</em> otherwise.
+     *
+     * @param serverName the server name.
+     * @return a float point number of the server's delay, or <em>null</em>.
+     */
+    protected Float getDelay(String serverName){
+        if(names.contains(serverName))
+            return delays.get(names.indexOf(serverName));
+        else return null;
     }
 
 }
