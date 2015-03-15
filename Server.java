@@ -86,8 +86,8 @@ public class Server {
 
         private void executeCommand(String[] cmd) throws IOException {
 
-            if(cmd[0].equals("send")) {
-                if(cmd.length == 3) {
+            if (cmd[0].equals("send")) {
+                if (cmd.length == 3) {
                     String message = cmd[1];
                     String destinationName = cmd[2].toUpperCase();
                     destinationAddress = config.getAddress(destinationName);
@@ -102,74 +102,57 @@ public class Server {
 
                     messageToServer.close();
                     socket.close();
-                }
-                else {
+                } else {
                     System.out.println("Invalid format. Try: send <message> <destinationServerName>");
                 }
-            }
-            else if(cmd[0].equals("delete")) {
-                if(cmd.length == 2) {
+            } else if (cmd[0].equals("delete")) {
+                if (cmd.length == 2) {
                     System.out.println("That's all, folks");
-                }
-                else {
+                } else {
                     System.out.println("Invalid format. Try: delete <key>");
                 }
-            }
-            else if(cmd[0].equals("get")) {
-                if(cmd.length == 3) {
+            } else if (cmd[0].equals("get")) {
+                if (cmd.length == 3) {
                     System.out.println("That's all, folks");
-                }
-                else {
+                } else {
                     System.out.println("Invalid format. Try: get <key> <model>");
                 }
-            }
-            else if(cmd[0].equals("insert")) {
-                if(cmd.length == 4) {
+            } else if (cmd[0].equals("insert")) {
+                if (cmd.length == 4) {
                     System.out.println("That's all, folks");
-                }
-                else {
+                } else {
                     System.out.println("Invalid format. Try: insert <key> <value> <model>");
                 }
-            }
-            else if(cmd[0].equals("update")) {
-                if(cmd.length == 4) {
+            } else if (cmd[0].equals("update")) {
+                if (cmd.length == 4) {
                     System.out.println("That's all, folks");
-                }
-                else {
+                } else {
                     System.out.println("Invalid format. Try: update <key> <value> <model>");
                 }
-            }
-            else if(cmd[0].equals("show-all")) {
-                if(cmd.length == 1) {
+            } else if (cmd[0].equals("show-all")) {
+                if (cmd.length == 1) {
                     System.out.println("That's all, folks");
-                }
-                else {
+                } else {
                     System.out.println("Invalid format. Try: show-all");
                 }
-            }
-            else if(cmd[0].equals("search")) {
-                if(cmd.length == 2) {
+            } else if (cmd[0].equals("search")) {
+                if (cmd.length == 2) {
                     System.out.println("That's all, folks");
-                }
-                else {
+                } else {
                     System.out.println("Invalid format. Try: search <key>");
                 }
-            }
-            else if(cmd[0].equals("delay")) {
-                if(cmd.length == 2) {
+            } else if (cmd[0].equals("delay")) {
+                if (cmd.length == 2) {
                     System.out.println("That's all, folks");
-                }
-                else {
+                } else {
                     System.out.println("Invalid format. Try: delay <seconds>");
                 }
-            }
-            else if(cmd[0].equals("--help")) {
-                if(cmd.length == 1)
+            } else if (cmd[0].equals("--help")) {
+                if (cmd.length == 1)
                     askForHelp();
                 else
                     System.out.println("Invalid format. Try: --help");
-            }
-            else {
+            } else {
                 System.out.println("Invalid command. Try: --help");
             }
         }
