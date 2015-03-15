@@ -31,6 +31,10 @@ public class Starter {
         readConfig(configName);
     }
 
+    public ArrayList<String> getNames() {
+        return names;
+    }
+
     /**
      * Reads a configuration file and stores each one of its initialization variables.
      *
@@ -116,7 +120,7 @@ public class Starter {
      *
      * @param timeInSeconds a floating point number containing the total delay time in seconds.
      */
-    private void delay(float timeInSeconds) {
-        sleep(timeInSeconds * 1000.0);
-    }
+//    private void delay(float timeInSeconds) {
+//        sleep(timeInSeconds * 1000.0);
+//    }
 }

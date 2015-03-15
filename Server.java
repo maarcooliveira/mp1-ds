@@ -1,3 +1,5 @@
+import models.ValueAndTimeStamp;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -5,7 +7,10 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Creates a server that sends messages to other servers in a simulated distributed system.
@@ -20,7 +25,7 @@ public class Server {
     static int serverPort;
     static int serverMaxDelay;
     static Starter config;
-
+    HashMap<Integer, ValueAndTimeStamp> memory;
     /**
      * Creates a server based on a name and a Starter object will all the specifications.
      *
@@ -33,6 +38,7 @@ public class Server {
         serverAddress = config.getAddress(name);
         serverPort = config.getPort(name);
         serverMaxDelay = config.getDelay(name);
+        memory = new HashMap<Integer, ValueAndTimeStamp>();
     }
 
     /**
@@ -254,7 +260,6 @@ public class Server {
                 }
             }
         }
-
         public void add(Message msg) {
             list.push(msg);
         }
