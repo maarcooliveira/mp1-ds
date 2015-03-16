@@ -100,25 +100,31 @@ public class Server {
                 }
             } else if (cmd[0].equals("delete")) {
                 if (cmd.length == 2) {
-                    sendToCentral(command);
+                    sendToCentral(command + " " + serverId);
                 } else {
                     System.out.println("Invalid format. Try: delete <key>");
                 }
             } else if (cmd[0].equals("get")) {
                 if (cmd.length == 3) {
-                    sendToCentral(command);
+                    if(cmd[cmd.length - 1].equals("2")){
+                        int key = Integer.valueOf(cmd[1]);
+                        int val = memory.get(key).getValue();
+                        System.out.println("get(" + key + ") = " + val);
+                    }
+                    else
+                        sendToCentral(command + " " + serverId);
                 } else {
                     System.out.println("Invalid format. Try: get <key> <model>");
                 }
             } else if (cmd[0].equals("insert")) {
                 if (cmd.length == 4) {
-                    sendToCentral(command);
+                    sendToCentral(command + " " + serverId);
                 } else {
                     System.out.println("Invalid format. Try: insert <key> <value> <model>");
                 }
             } else if (cmd[0].equals("update")) {
                 if (cmd.length == 4) {
-                    sendToCentral(command);
+                    sendToCentral(command + " " + serverId);
                 } else {
                     System.out.println("Invalid format. Try: update <key> <value> <model>");
                 }
@@ -190,13 +196,10 @@ public class Server {
                 while (true) {
                     Socket socket = listener.accept();
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                    DataOutputStream messageToClient = new DataOutputStream(socket.getOutputStream());
-//                    messageToClient.writeBytes("ack");
                     String[] inputs = messageFromClient.readLine().split(" ");
                     long time = Math.max(System.currentTimeMillis() + config.setDelay(serverMaxDelay) * 1000, maxTime);
                     maxTime = time;
                     Message message = new Message(inputs, time);
-
                     mt.add(message);
                 }
             } catch (IOException e) {
@@ -279,7 +282,6 @@ public class Server {
 
                 System.out.println("Inserted key " + key);
                 sendToCentral("ack insert " + key + " " + value);
-                //TODO: insert key
 
             } else if (msg[0].equals("update")) {
                 int key = Integer.valueOf(msg[1]);
@@ -303,7 +305,19 @@ public class Server {
             } else if (msg[0].equals("delay")) {
                 //TODO: delay
             } else if (msg[0].equals("ack")) {
-                //TODO: remove this ack and check for ack while is a client
+                String operation = msg[1];
+                if(operation.equals("get"))
+                    System.out.println("get(" + msg[2] + ") = (" + msg[3] + "," + msg[4] + ")");
+                else if(operation.equals("update"))
+                    System.out.println("Key " + msg[2] + " updated to " + msg[3]);
+                else if(operation.equals("get-partial"))
+                    System.out.println(msg[2] + ", " + msg[3]);
+                else {
+                    for (String m : msg) {
+                        System.out.print(m + " ");
+                    }
+                    System.out.println();
+                }
             } else { // Is a "send" command
                 String origin = msg[0];
                 String message = msg[1];
@@ -324,6 +338,12 @@ public class Server {
             socket = new Socket(destinationAddress, destinationPort);
             DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
             messageToServer.writeBytes(message);
+
+//            BufferedReader messageFromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//            String[] inputs = messageFromServer.readLine().split(" ");
+
+//            System.out.println(messageFromServer.readLine());
+
             messageToServer.close();
             socket.close();
         } catch (IOException e) {

@@ -3,6 +3,7 @@ import models.ValueAndTimeStamp;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -23,13 +24,15 @@ public class CentralServer {
     static volatile List<String> queueMessage = new LinkedList<String>();
     static int ackCount = 0;
     static volatile boolean allAcksReceived = true;
-    static int numServers = 2;
+    static int numServers = 0;
     static volatile int acksToWait = 0;
-    static Long mostRecentTimestamp = null;
-    static Integer mostRecentValue = null;
+    static volatile Long mostRecentTimestamp = null;
+    static volatile Integer mostRecentValue = null;
+    static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 
     public CentralServer(Starter starter) {
         config = starter;
+        numServers = config.getNames().size() - 1;
         centralId = "CENTRAL";
         centralAddress = config.getAddress(centralId);
         centralPort = config.getPort(centralId);
@@ -46,6 +49,7 @@ public class CentralServer {
             try {
                 listener = new ServerSocket(centralPort);
                 PrintWriter messageToClient = null;
+                String clientName = "";
                 while (true) {
                     Socket socket = listener.accept();
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -53,29 +57,35 @@ public class CentralServer {
                     String[] listArg = message.split(" ");
                     if(!listArg[0].equals("ack")) {
                         queueMessage.add(message);
-                        messageToClient = new PrintWriter(socket.getOutputStream(), true);
+                        clientName = listArg[listArg.length - 1];
                     } else {
-                        if(listArg[1].equals("get")){
+                        if(listArg[1].equals("get") && ackCount < acksToWait) {
                             Long receivedGetTimestamp = Long.parseLong(listArg[4]);
                             Integer receivedGetValue = Integer.parseInt(listArg[3]);
-                            System.out.println( "Timestamp: " + receivedGetTimestamp + " Value: " + receivedGetValue);
+                            sendToClient(clientName, "ack get-partial " + receivedGetValue + " " + sdf.format(receivedGetTimestamp));
                             if(mostRecentTimestamp == null || mostRecentTimestamp < receivedGetTimestamp){
                                 mostRecentTimestamp = receivedGetTimestamp;
                                 mostRecentValue = receivedGetValue;
                             }
                         }
-                        ackCount = (ackCount + 1)%4;
-                        if (ackCount == 0){
-                            allAcksReceived = true;
-                        }
-                        if(ackCount == acksToWait) {
+                        ackCount = (ackCount + 1);
+                        if(ackCount == acksToWait || (acksToWait == 0 && ackCount == 1)) {
                             String operation = listArg[1];
-                            String output = "ack " + operation + " " + (operation.equals("get")? mostRecentValue : "");
-                            messageToClient.println(output);
+                            String output = "ack " + operation + " " + listArg[2];
+                            if (operation.equals("get"))
+                                output += " " + mostRecentValue + " " + sdf.format(mostRecentTimestamp);
+                            else if (operation.equals("update"))
+                                output += " " + listArg[6];
+
+                            sendToClient(clientName, output);
                         }
-                        if(ackCount == numServers) {
+                        if (ackCount == numServers){
                             allAcksReceived = true;
+                            ackCount %= 4;
+                            mostRecentTimestamp = null;
+                            mostRecentValue = null;
                         }
+
                     }
 
                 }
@@ -85,18 +95,37 @@ public class CentralServer {
         }
     }
 
+    private static void sendToClient(String clientId, String message) throws IOException{
+        int port = config.getPort(clientId);
+        String address = config.getAddress(clientId);
+        Socket socket = null;
+        try {
+            socket = new Socket(address, port);
+            DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
+            messageToServer.writeBytes(message);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if(socket != null) {
+                socket.close();
+            }
+        }
+    }
+
     private static class broadcastManager extends Thread{
 
         public void run(){
             while(true){
-                if(queueMessage.size() > 0 && allAcksReceived){
+                if(queueMessage.size() > 0 && allAcksReceived) {
                     String message = queueMessage.remove(0);
                     allAcksReceived = false;
                     acksToWait = numServers;
                     String[] listArg = message.split(" ");
                     String cmd = listArg[0];
                     if(!cmd.equals("delete")) {
-                        int model = Integer.valueOf(listArg[listArg.length-1]);
+                        int model = Integer.valueOf(listArg[listArg.length-2]);
                         if(model == 1)
                             acksToWait = numServers;
                         else if(model == 2)
