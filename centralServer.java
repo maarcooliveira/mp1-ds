@@ -4,13 +4,15 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by Bruno on 3/15/2015.
+ * Creates a central server that communicates will all servers in order to guarantee different consistent models.
+ *
+ * @author Bruno, Cassio, Marco
+ * @version 1.0
  */
 public class CentralServer {
 
@@ -55,21 +57,21 @@ public class CentralServer {
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String message = messageFromClient.readLine();
                     String[] listArg = message.split(" ");
-                    if(!listArg[0].equals("ack")) {
+                    if (!listArg[0].equals("ack")) {
                         queueMessage.add(message);
                         clientName = listArg[listArg.length - 1];
                     } else {
-                        if(listArg[1].equals("get") && ackCount < acksToWait) {
+                        if (listArg[1].equals("get") && ackCount < acksToWait) {
                             Long receivedGetTimestamp = Long.parseLong(listArg[4]);
                             Integer receivedGetValue = Integer.parseInt(listArg[3]);
                             sendToClient(clientName, "ack get-partial " + receivedGetValue + " " + sdf.format(receivedGetTimestamp));
-                            if(mostRecentTimestamp == null || mostRecentTimestamp < receivedGetTimestamp){
+                            if (mostRecentTimestamp == null || mostRecentTimestamp < receivedGetTimestamp) {
                                 mostRecentTimestamp = receivedGetTimestamp;
                                 mostRecentValue = receivedGetValue;
                             }
                         }
                         ackCount = (ackCount + 1);
-                        if(ackCount == acksToWait || (acksToWait == 0 && ackCount == 1)) {
+                        if (ackCount == acksToWait || (acksToWait == 0 && ackCount == 1)) {
                             String operation = listArg[1];
                             String output = "ack " + operation + " " + listArg[2];
                             if (operation.equals("get"))
@@ -79,7 +81,7 @@ public class CentralServer {
 
                             sendToClient(clientName, output);
                         }
-                        if (ackCount == numServers){
+                        if (ackCount == numServers) {
                             allAcksReceived = true;
                             ackCount %= 4;
                             mostRecentTimestamp = null;
@@ -95,7 +97,7 @@ public class CentralServer {
         }
     }
 
-    private static void sendToClient(String clientId, String message) throws IOException{
+    private static void sendToClient(String clientId, String message) throws IOException {
         int port = config.getPort(clientId);
         String address = config.getAddress(clientId);
         Socket socket = null;
@@ -106,39 +108,37 @@ public class CentralServer {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        finally {
-            if(socket != null) {
+        } finally {
+            if (socket != null) {
                 socket.close();
             }
         }
     }
 
-    private static class broadcastManager extends Thread{
+    private static class broadcastManager extends Thread {
 
-        public void run(){
-            while(true){
-                if(queueMessage.size() > 0 && allAcksReceived) {
+        public void run() {
+            while (true) {
+                if (queueMessage.size() > 0 && allAcksReceived) {
                     String message = queueMessage.remove(0);
                     allAcksReceived = false;
                     acksToWait = numServers;
                     String[] listArg = message.split(" ");
                     String cmd = listArg[0];
-                    if(!cmd.equals("delete")) {
-                        int model = Integer.valueOf(listArg[listArg.length-2]);
-                        if(model == 1)
+                    if (!cmd.equals("delete")) {
+                        int model = Integer.valueOf(listArg[listArg.length - 2]);
+                        if (model == 1)
                             acksToWait = numServers;
-                        else if(model == 2)
-                           if(cmd.equals("insert") || cmd.equals("update"))
-                               acksToWait = numServers;
-                           else
-                               acksToWait = 0;
-                        else if(model == 3)
+                        else if (model == 2)
+                            if (cmd.equals("insert") || cmd.equals("update"))
+                                acksToWait = numServers;
+                            else
+                                acksToWait = 0;
+                        else if (model == 3)
                             acksToWait = 1;
-                        else if(model == 4)
+                        else if (model == 4)
                             acksToWait = 2;
-                    }
-                    else{
+                    } else {
                         acksToWait = 0;
                     }
                     try {
@@ -155,8 +155,8 @@ public class CentralServer {
     public static void broadcast(String message) throws IOException {
         Socket socket = null;
 
-        for(String str : config.getNames()){
-            if(!str.equals("CENTRAL")){
+        for (String str : config.getNames()) {
+            if (!str.equals("CENTRAL")) {
                 int port = config.getPort(str);
                 String address = config.getAddress(str);
 
@@ -167,9 +167,8 @@ public class CentralServer {
 
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-                finally {
-                    if(socket != null) {
+                } finally {
+                    if (socket != null) {
                         socket.close();
                     }
                 }

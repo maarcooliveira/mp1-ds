@@ -10,10 +10,9 @@ public class Main {
 
     /**
      * Creates a new server based on the configurations shown in the config.txt file.
-     *
-     * Usage (in the terminal): java Main [serverName]
-     * Example: java Main A
-     *
+     * <p/>
+     * Usage (in the terminal): java Main [serverName] Example: java Main A
+     * <p/>
      * If necessary, compile the Java files first with: javac *.java
      *
      * @param args all arguments required to create a server (4 in total).

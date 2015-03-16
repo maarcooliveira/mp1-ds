@@ -11,7 +11,6 @@ import java.util.*;
  *
  * @author Bruno, Cassio, Marco
  * @version 1.0
- * @since 3/15/15
  */
 public class Server {
     static String serverId;
@@ -54,7 +53,6 @@ public class Server {
      *
      * @author Bruno, Cassio, Marco
      * @version 1.0
-     * @since 3/15/15
      */
     private static class ClientT extends Thread {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -63,6 +61,9 @@ public class Server {
         int destinationPort;
         DataOutputStream messageToServer;
 
+        /**
+         * Runs the client thread, keeping track of every message the user types in the command line.
+         */
         public void run() {
             try {
                 BufferedReader userMessage = new BufferedReader(new InputStreamReader(System.in));
@@ -77,6 +78,12 @@ public class Server {
             }
         }
 
+        /**
+         * Executes a command and interacts with the other servers by parsing a line of input written by the user.
+         *
+         * @param command a String parsed by blank spaces containing a command.
+         * @throws IOException if the interaction with another server is invalid.
+         */
         private void executeCommand(String command) throws IOException {
             String[] cmd = command.split(" ");
             if (cmd[0].equals("send")) {
@@ -106,12 +113,11 @@ public class Server {
                 }
             } else if (cmd[0].equals("get")) {
                 if (cmd.length == 3) {
-                    if(cmd[cmd.length - 1].equals("2")){
+                    if (cmd[cmd.length - 1].equals("2")) {
                         int key = Integer.valueOf(cmd[1]);
                         int val = memory.get(key).getValue();
                         System.out.println("get(" + key + ") = " + val);
-                    }
-                    else
+                    } else
                         sendToCentral(command + " " + serverId);
                 } else {
                     System.out.println("Invalid format. Try: get <key> <model>");
@@ -182,11 +188,13 @@ public class Server {
      *
      * @author Bruno, Cassio, Marco
      * @version 1.0
-     * @since 3/15/15
      */
     private static class ServerT extends Thread {
         long maxTime = 0;
 
+        /**
+         * Runs the server thread, listening to a certain port and handling messages using another thread.
+         */
         public void run() {
             try {
                 ServerSocket listener = new ServerSocket(serverPort);
@@ -214,12 +222,17 @@ public class Server {
      *
      * @author Bruno, Cassio, Marco
      * @version 1.0
-     * @since 3/15/15
      */
     private static class Message {
         String[] msg;
         long time;
 
+        /**
+         * Creates a message that has its own timestamp.
+         *
+         * @param msg  the message parsed as a String array.
+         * @param time a long number corresponding to the message timestamp.
+         */
         public Message(String[] msg, long time) {
             this.msg = msg;
             this.time = time;
@@ -231,12 +244,14 @@ public class Server {
      *
      * @author Bruno, Cassio, Marco
      * @version 1.0
-     * @since 3/15/15
      */
     private static class MessageT extends Thread {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         volatile LinkedList<Message> list = new LinkedList<Message>();
 
+        /**
+         * Runs the thread, processing messages in FIFO ordering, when their time comes.
+         */
         public void run() {
             while (true) {
                 if (list.size() > 0) {
@@ -250,10 +265,20 @@ public class Server {
             }
         }
 
+        /**
+         * Adds a message to a list that keeps track of every message received.
+         *
+         * @param msg a Message object received by the thread.
+         */
         public void add(Message msg) {
             list.push(msg);
         }
 
+        /**
+         * Process a message when its time has come.
+         *
+         * @param msg a String array containing a parsed command.
+         */
         private void processMessage(String[] msg) {
             if (msg[0].equals("delete")) {
                 int key = Integer.valueOf(msg[1]);
@@ -299,18 +324,18 @@ public class Server {
 
             } else if (msg[0].equals("search")) {
                 int value = Integer.valueOf(msg[1]);
-                if(memory.containsKey(value))
+                if (memory.containsKey(value))
                     sendToCentral("ack search " + serverId);
 
             } else if (msg[0].equals("delay")) {
                 //TODO: delay
             } else if (msg[0].equals("ack")) {
                 String operation = msg[1];
-                if(operation.equals("get"))
+                if (operation.equals("get"))
                     System.out.println("get(" + msg[2] + ") = (" + msg[3] + "," + msg[4] + ")");
-                else if(operation.equals("update"))
+                else if (operation.equals("update"))
                     System.out.println("Key " + msg[2] + " updated to " + msg[3]);
-                else if(operation.equals("get-partial"))
+                else if (operation.equals("get-partial"))
                     System.out.println(msg[2] + ", " + msg[3]);
                 else {
                     for (String m : msg) {
@@ -328,6 +353,12 @@ public class Server {
         }
     }
 
+    /**
+     * Sends a message to a central server. This is required when it is necessary to communicate with all the other
+     * servers.
+     *
+     * @param message a non-parsed String containing a certain message.
+     */
     private static void sendToCentral(String message) {
         String destinationName = "CENTRAL";
         String destinationAddress = config.getAddress(destinationName);

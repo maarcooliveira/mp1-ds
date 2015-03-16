@@ -30,6 +30,11 @@ public class Starter {
         readConfig(configName);
     }
 
+    /**
+     * Gets a list with all the server names.
+     *
+     * @return an array list containing the names of every server.
+     */
     public ArrayList<String> getNames() {
         return names;
     }
