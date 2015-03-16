@@ -1,6 +1,9 @@
 import models.ValueAndTimeStamp;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -18,7 +21,7 @@ public class CentralServer {
     static int centralMaxDelay;
     static Starter config;
     HashMap<Integer, ValueAndTimeStamp> memory;
-    ServerSocket listener;
+    static ServerSocket listener;
     List<Socket> listSockets = new ArrayList<Socket>();
 
 
@@ -29,20 +32,49 @@ public class CentralServer {
         centralPort = config.getPort(centralId);
         centralMaxDelay = config.getDelay(centralId);
         memory = new HashMap<Integer, ValueAndTimeStamp>();
-        try {
-            listener = new ServerSocket(centralPort);
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        new ServerT().start();
+
+    }
+
+    private static class ServerT extends Thread {
+
+        public void run() {
+            try {
+                listener = new ServerSocket(centralPort);
+
+                while (true) {
+                    Socket socket = listener.accept();
+                    BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    broadcast(messageFromClient.readLine());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public static void broadcast(String message) throws IOException {
+        Socket socket = null;
+
         for(String str : config.getNames()){
             if(!str.equals("CENTRAL")){
                 int port = config.getPort(str);
                 String address = config.getAddress(str);
+
                 try {
-                    Socket socket = new Socket(address, port);
-                    listSockets.add(socket);
+                    socket = new Socket(address, port);
+                    DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
+                    messageToServer.writeBytes(message);
+
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+                finally {
+                    if(socket != null) {
+                        socket.close();
+                        socket = null;
+                    }
                 }
             }
         }
