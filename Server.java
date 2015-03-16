@@ -1,9 +1,6 @@
 import models.ValueAndTimeStamp;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
@@ -195,7 +192,8 @@ public class Server {
                 while (true) {
                     Socket socket = listener.accept();
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
+                    DataOutputStream messageToClient = new DataOutputStream(socket.getOutputStream());
+                    messageToClient.writeBytes("ack");
                     String[] inputs = messageFromClient.readLine().split(" ");
                     long time = Math.max(System.currentTimeMillis() + config.setDelay(serverMaxDelay) * 1000, maxTime);
                     maxTime = time;
@@ -245,17 +243,62 @@ public class Server {
                         String[] msg = list.get(0).msg;
                         list.remove(0);
 
-                        String origin = msg[0];
-                        String message = msg[1];
+                        processMessage(msg);
 
-                        System.out.println("Received \"" + message + "\" from " + origin + ", Max delay is " + serverMaxDelay
-                                + "s, system time is " + sdf.format(System.currentTimeMillis()));
                     }
                 }
             }
         }
+
         public void add(Message msg) {
             list.push(msg);
+        }
+
+        private void processMessage(String[] msg) {
+
+            if (msg[0].equals("delete")) {
+                int index = Integer.valueOf(msg[1]);
+                //TODO: delete from data structure
+                answerClient("*", "key " + index + " deleted");
+            } else if (msg[0].equals("get")) {
+                //TODO: get value from data structure
+
+            } else if (msg[0].equals("insert")) {
+                //TODO: insert key
+
+            } else if (msg[0].equals("update")) {
+
+            } else if (msg[0].equals("show-all")) {
+
+            } else if (msg[0].equals("search")) {
+
+            } else if (msg[0].equals("delay")) {
+
+            } else { // Is a "send" command
+                String origin = msg[0];
+                String message = msg[1];
+
+                System.out.println("Received \"" + message + "\" from " + origin + ", Max delay is " + serverMaxDelay
+                        + "s, system time is " + sdf.format(System.currentTimeMillis()));
+            }
+        }
+
+        private void answerClient(String clientName, String message) {
+            String destinationName = clientName.toUpperCase();
+            String destinationAddress = config.getAddress(destinationName);
+            int destinationPort = config.getPort(destinationName);
+
+            Socket socket = null;
+            try {
+                socket = new Socket(destinationAddress, destinationPort);
+                DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
+                messageToServer.writeBytes(message);
+                messageToServer.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 }

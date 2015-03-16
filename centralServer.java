@@ -73,7 +73,6 @@ public class CentralServer {
                 finally {
                     if(socket != null) {
                         socket.close();
-                        socket = null;
                     }
                 }
             }
