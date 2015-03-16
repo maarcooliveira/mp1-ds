@@ -9,7 +9,6 @@ import java.util.Scanner;
  *
  * @author Cassio dos Santos Sousa <dssntss2@illinois.edu>
  * @version 1.0
- * @since 3/15/15
  */
 public class Starter {
 
