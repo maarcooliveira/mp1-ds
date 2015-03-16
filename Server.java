@@ -4,10 +4,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Creates a server that sends messages to other servers in a simulated distributed system.
@@ -22,7 +19,8 @@ public class Server {
     static int serverPort;
     static int serverMaxDelay;
     static Starter config;
-    HashMap<Integer, ValueAndTimeStamp> memory;
+    static volatile HashMap<Integer, ValueAndTimeStamp> memory;
+
     /**
      * Creates a server based on a name and a Starter object will all the specifications.
      *
@@ -68,11 +66,9 @@ public class Server {
         public void run() {
             try {
                 BufferedReader userMessage = new BufferedReader(new InputStreamReader(System.in));
-                String cmd[];
 
                 while (true) {
-                    cmd = userMessage.readLine().split(" ");
-                    executeCommand(cmd);
+                    executeCommand(userMessage.readLine());
                 }
 
             } catch (IOException e) {
@@ -81,8 +77,8 @@ public class Server {
             }
         }
 
-        private void executeCommand(String[] cmd) throws IOException {
-
+        private void executeCommand(String command) throws IOException {
+            String[] cmd = command.split(" ");
             if (cmd[0].equals("send")) {
                 if (cmd.length == 3) {
                     String message = cmd[1];
@@ -104,43 +100,45 @@ public class Server {
                 }
             } else if (cmd[0].equals("delete")) {
                 if (cmd.length == 2) {
-                    System.out.println("That's all, folks");
+                    sendToCentral(command);
                 } else {
                     System.out.println("Invalid format. Try: delete <key>");
                 }
             } else if (cmd[0].equals("get")) {
                 if (cmd.length == 3) {
-                    System.out.println("That's all, folks");
+                    sendToCentral(command);
                 } else {
                     System.out.println("Invalid format. Try: get <key> <model>");
                 }
             } else if (cmd[0].equals("insert")) {
                 if (cmd.length == 4) {
-                    System.out.println("That's all, folks");
+                    sendToCentral(command);
                 } else {
                     System.out.println("Invalid format. Try: insert <key> <value> <model>");
                 }
             } else if (cmd[0].equals("update")) {
                 if (cmd.length == 4) {
-                    System.out.println("That's all, folks");
+                    sendToCentral(command);
                 } else {
                     System.out.println("Invalid format. Try: update <key> <value> <model>");
                 }
             } else if (cmd[0].equals("show-all")) {
                 if (cmd.length == 1) {
-                    System.out.println("That's all, folks");
+                    for (Integer key : memory.keySet()) {
+                        System.out.println(key + " : " + memory.get(key).getValue());
+                    }
                 } else {
                     System.out.println("Invalid format. Try: show-all");
                 }
             } else if (cmd[0].equals("search")) {
                 if (cmd.length == 2) {
-                    System.out.println("That's all, folks");
+                    sendToCentral(command);
                 } else {
                     System.out.println("Invalid format. Try: search <key>");
                 }
             } else if (cmd[0].equals("delay")) {
                 if (cmd.length == 2) {
-                    System.out.println("That's all, folks");
+                    sendToCentral(command);
                 } else {
                     System.out.println("Invalid format. Try: delay <seconds>");
                 }
@@ -192,8 +190,8 @@ public class Server {
                 while (true) {
                     Socket socket = listener.accept();
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    DataOutputStream messageToClient = new DataOutputStream(socket.getOutputStream());
-                    messageToClient.writeBytes("ack");
+//                    DataOutputStream messageToClient = new DataOutputStream(socket.getOutputStream());
+//                    messageToClient.writeBytes("ack");
                     String[] inputs = messageFromClient.readLine().split(" ");
                     long time = Math.max(System.currentTimeMillis() + config.setDelay(serverMaxDelay) * 1000, maxTime);
                     maxTime = time;
@@ -244,7 +242,6 @@ public class Server {
                         list.remove(0);
 
                         processMessage(msg);
-
                     }
                 }
             }
@@ -255,25 +252,58 @@ public class Server {
         }
 
         private void processMessage(String[] msg) {
-
             if (msg[0].equals("delete")) {
-                int index = Integer.valueOf(msg[1]);
-                //TODO: delete from data structure
-                answerClient("*", "key " + index + " deleted");
+                int key = Integer.valueOf(msg[1]);
+                memory.remove(key);
+
+                System.out.println("Key " + key + " deleted");
+                sendToCentral("ack delete " + key);
+
             } else if (msg[0].equals("get")) {
-                //TODO: get value from data structure
+                int key = Integer.valueOf(msg[1]);
+                int value;
+                long timestamp;
+
+                ValueAndTimeStamp val = memory.get(key);
+                value = val.getValue();
+                timestamp = val.getTimeStamp();
+
+                sendToCentral("ack get " + key + " " + value + " " + timestamp);
 
             } else if (msg[0].equals("insert")) {
+                int key = Integer.valueOf(msg[1]);
+                int value = Integer.valueOf(msg[2]);
+
+                ValueAndTimeStamp val = new ValueAndTimeStamp(value, System.currentTimeMillis());
+                memory.put(key, val);
+
+                System.out.println("Inserted key " + key);
+                sendToCentral("ack insert " + key + " " + value);
                 //TODO: insert key
 
             } else if (msg[0].equals("update")) {
+                int key = Integer.valueOf(msg[1]);
+                int value = Integer.valueOf(msg[2]);
+                int oldValue = 0;
 
-            } else if (msg[0].equals("show-all")) {
+                ValueAndTimeStamp oldVal = memory.get(key);
+                oldValue = oldVal.getValue();
+
+                ValueAndTimeStamp newVal = new ValueAndTimeStamp(value, System.currentTimeMillis());
+                memory.replace(key, oldVal, newVal);
+
+                System.out.println("Key " + key + " changed from " + oldValue + " to " + value);
+                sendToCentral("ack update " + key + " from " + oldValue + " to " + value);
 
             } else if (msg[0].equals("search")) {
+                int value = Integer.valueOf(msg[1]);
+                if(memory.containsKey(value))
+                    sendToCentral("ack search " + serverId);
 
             } else if (msg[0].equals("delay")) {
-
+                //TODO: delay
+            } else if (msg[0].equals("ack")) {
+                //TODO: remove this ack and check for ack while is a client
             } else { // Is a "send" command
                 String origin = msg[0];
                 String message = msg[1];
@@ -282,23 +312,23 @@ public class Server {
                         + "s, system time is " + sdf.format(System.currentTimeMillis()));
             }
         }
+    }
 
-        private void answerClient(String clientName, String message) {
-            String destinationName = clientName.toUpperCase();
-            String destinationAddress = config.getAddress(destinationName);
-            int destinationPort = config.getPort(destinationName);
+    private static void sendToCentral(String message) {
+        String destinationName = "CENTRAL";
+        String destinationAddress = config.getAddress(destinationName);
+        int destinationPort = config.getPort(destinationName);
 
-            Socket socket = null;
-            try {
-                socket = new Socket(destinationAddress, destinationPort);
-                DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
-                messageToServer.writeBytes(message);
-                messageToServer.close();
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+        Socket socket = null;
+        try {
+            socket = new Socket(destinationAddress, destinationPort);
+            DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
+            messageToServer.writeBytes(message);
+            messageToServer.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 }
