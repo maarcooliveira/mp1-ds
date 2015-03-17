@@ -23,15 +23,15 @@ public class Server {
     /**
      * Creates a server based on a name and a Config object will all the specifications.
      *
-     * @param config the Config object reading the required configuration file.
+     * @param starter the Config object reading the required configuration file.
      * @param name    a name for the server.
      */
-    public Server(Config config, String name) {
-        Server.config = config;
+    public Server(Config starter, String name) {
+        config = starter;
         serverId = name;
-        serverAddress = Server.config.getAddress(name);
-        serverPort = Server.config.getPort(name);
-        serverMaxDelay = Server.config.getDelay(name);
+        serverAddress = config.getAddress(name);
+        serverPort = config.getPort(name);
+        serverMaxDelay = config.getDelay(name);
         memory = new HashMap<Integer, ValueAndTimeStamp>();
     }
 
