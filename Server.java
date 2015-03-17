@@ -69,7 +69,9 @@ public class Server {
                 BufferedReader userMessage = new BufferedReader(new InputStreamReader(System.in));
 
                 while (true) {
-                    executeCommand(userMessage.readLine());
+                    String message = userMessage.readLine();
+                    if(message != null)
+                        executeCommand(message);
                 }
 
             } catch (IOException e) {
@@ -115,8 +117,11 @@ public class Server {
                 if (cmd.length == 3) {
                     if (cmd[cmd.length - 1].equals("2")) {
                         int key = Integer.valueOf(cmd[1]);
-                        int val = memory.get(key).getValue();
-                        System.out.println("get(" + key + ") = " + val);
+                        if (memory.get(key) != null) {
+                            int val = memory.get(key).getValue();
+                            System.out.println("get(" + key + ") = " + val);
+                        } else
+                            System.out.println("get(" + key + ") = null");
                     } else
                         sendToCentral(command + " " + serverId);
                 } else {
@@ -144,16 +149,31 @@ public class Server {
                 }
             } else if (cmd[0].equals("search")) {
                 if (cmd.length == 2) {
-                    sendToCentral(command);
+                    sendToCentral(command + " " + serverId);
                 } else {
                     System.out.println("Invalid format. Try: search <key>");
                 }
             } else if (cmd[0].equals("delay")) {
                 if (cmd.length == 2) {
-                    sendToCentral(command);
+                    String destinationName = serverId;
+                    destinationAddress = config.getAddress(destinationName);
+                    destinationPort = config.getPort(destinationName);
+
+                    socket = new Socket(destinationAddress, destinationPort);
+                    messageToServer = new DataOutputStream(socket.getOutputStream());
+                    messageToServer.writeBytes(command);
+                    messageToServer.close();
                 } else {
                     System.out.println("Invalid format. Try: delay <seconds>");
                 }
+            } else if (cmd[0].equals("repair")) {
+                if (cmd.length == 2) {
+                    sendToCentral(command + " " + serverId);
+                } else {
+                    System.out.println("Invalid format. Try: repair <key>");
+                }
+            } else if (cmd[0].equals("exit")) {
+                sendToCentral(command + " " + serverId);
             } else if (cmd[0].equals("--help")) {
                 if (cmd.length == 1)
                     askForHelp();
@@ -176,6 +196,7 @@ public class Server {
             System.out.println("    insert <key> <value> <model>");
             System.out.println("    update <key> <value> <model>");
             System.out.println("    search <key>");
+            System.out.println("    repair <key>");
             System.out.println("    send <message> <destinationServerName>");
             System.out.println("    show-all");
             System.out.println("    --help");
@@ -293,10 +314,12 @@ public class Server {
                 long timestamp;
 
                 ValueAndTimeStamp val = memory.get(key);
-                value = val.getValue();
-                timestamp = val.getTimeStamp();
+                if (val != null) {
+                    value = val.getValue();
+                    timestamp = val.getTimeStamp();
 
-                sendToCentral("ack get " + key + " " + value + " " + timestamp);
+                    sendToCentral("ack get " + key + " " + value + " " + timestamp);
+                } else sendToCentral("ack get " + key);
 
             } else if (msg[0].equals("insert")) {
                 int key = Integer.valueOf(msg[1]);
@@ -326,23 +349,60 @@ public class Server {
                 int value = Integer.valueOf(msg[1]);
                 if (memory.containsKey(value))
                     sendToCentral("ack search " + serverId);
+                else
+                    sendToCentral("ack search");
 
             } else if (msg[0].equals("delay")) {
-                //TODO: delay
+                int time = Math.round(Float.valueOf(msg[1]) * 1000);
+                try {
+                    sleep(time);
+                    System.out.println("out of delay");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else if (msg[0].equals("repair")) {
+                if (msg[1].equals("insert")) {
+                    int key = Integer.valueOf(msg[2]);
+                    int value = Integer.valueOf(msg[3]);
+                    long timestamp = Long.valueOf(msg[4]);
+
+                    memory.put(key, new ValueAndTimeStamp(value, timestamp));
+                } else {
+                    int key = Integer.valueOf(msg[1]);
+                    int value;
+                    long timestamp;
+
+                    ValueAndTimeStamp val = memory.get(key);
+                    if (val != null) {
+                        value = val.getValue();
+                        timestamp = val.getTimeStamp();
+
+                        sendToCentral("ack repair " + key + " " + value + " " + timestamp);
+                    } else
+                        sendToCentral("ack repair " + key);
+                }
             } else if (msg[0].equals("ack")) {
                 String operation = msg[1];
+
                 if (operation.equals("get"))
-                    System.out.println("get(" + msg[2] + ") = (" + msg[3] + "," + msg[4] + ")");
+                    if (msg.length >= 4)
+                        System.out.println("get(" + msg[2] + ") = (" + msg[3] + "," + msg[4] + ")");
+                    else
+                        System.out.println("get(" + msg[2] + ") = (null, null)");
                 else if (operation.equals("update"))
                     System.out.println("Key " + msg[2] + " updated to " + msg[3]);
                 else if (operation.equals("get-partial"))
                     System.out.println(msg[2] + ", " + msg[3]);
-                else {
+                else if (operation.equals("search")) {
+                    System.out.println(msg[2]);
+                } else {
                     for (String m : msg) {
                         System.out.print(m + " ");
                     }
                     System.out.println();
                 }
+            } else if (msg[0].equals("exit")) {
+                System.exit(0);
             } else { // Is a "send" command
                 String origin = msg[0];
                 String message = msg[1];

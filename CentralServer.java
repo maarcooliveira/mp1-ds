@@ -30,7 +30,11 @@ public class CentralServer {
     static volatile int acksToWait = 0;
     static volatile Long mostRecentTimestamp = null;
     static volatile Integer mostRecentValue = null;
+    static volatile Long timestampRepair = null;
+    static volatile Integer valueRepair = null;
     static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+    static volatile boolean inconsistencyRepair = false;
+    static volatile Integer keyToRepair = null;
 
     public CentralServer(Starter starter) {
         config = starter;
@@ -57,30 +61,61 @@ public class CentralServer {
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String message = messageFromClient.readLine();
                     String[] listArg = message.split(" ");
+
+                    if(listArg[0].equals("exit")) {
+                        broadcast("exit");
+                        System.exit(0);
+                    }
                     if (!listArg[0].equals("ack")) {
                         queueMessage.add(message);
                         clientName = listArg[listArg.length - 1];
                     } else {
                         if (listArg[1].equals("get") && ackCount < acksToWait) {
-                            Long receivedGetTimestamp = Long.parseLong(listArg[4]);
-                            Integer receivedGetValue = Integer.parseInt(listArg[3]);
-                            sendToClient(clientName, "ack get-partial " + receivedGetValue + " " + sdf.format(receivedGetTimestamp));
-                            if (mostRecentTimestamp == null || mostRecentTimestamp < receivedGetTimestamp) {
-                                mostRecentTimestamp = receivedGetTimestamp;
-                                mostRecentValue = receivedGetValue;
+                            if(listArg.length >= 5) {
+                                Long receivedGetTimestamp = Long.parseLong(listArg[4]);
+                                Integer receivedGetValue = Integer.parseInt(listArg[3]);
+                                sendToClient(clientName, "ack get-partial " + receivedGetValue + " " + sdf.format(receivedGetTimestamp));
+                                if (mostRecentTimestamp == null || mostRecentTimestamp < receivedGetTimestamp) {
+                                    mostRecentTimestamp = receivedGetTimestamp;
+                                    mostRecentValue = receivedGetValue;
+                                }
                             }
                         }
                         ackCount = (ackCount + 1);
-                        if (ackCount == acksToWait || (acksToWait == 0 && ackCount == 1)) {
+                        if (listArg[1].equals("search")) {
+                            if(listArg.length == 3)
+                                sendToClient(clientName, "ack search " + listArg[2]);
+                        }
+                        else if (listArg[1].equals("repair")) {
+                            if(listArg.length >= 5) {
+                                Long receivedGetTimestamp = Long.parseLong(listArg[4]);
+                                Integer receivedGetValue = Integer.parseInt(listArg[3]);
+                                if (timestampRepair == null || timestampRepair < receivedGetTimestamp) {
+                                    timestampRepair = receivedGetTimestamp;
+                                    valueRepair = receivedGetValue;
+                                }
+                            }
+                            if(ackCount == numServers)
+                                if(timestampRepair != null) {
+                                    broadcast("repair insert " + keyToRepair + " " + valueRepair + " " + timestampRepair);
+                                    sendToClient(clientName, "ack key repaired");
+                                }
+                        }
+                        else if (ackCount == acksToWait || (acksToWait == 0 && ackCount == 1)) {
                             String operation = listArg[1];
                             String output = "ack " + operation + " " + listArg[2];
-                            if (operation.equals("get"))
-                                output += " " + mostRecentValue + " " + sdf.format(mostRecentTimestamp);
-                            else if (operation.equals("update"))
+
+                            if (operation.equals("get")) {
+                                if (mostRecentValue != null) {
+                                    output += " " + mostRecentValue + " " + sdf.format(mostRecentTimestamp);
+                                }
+                            } else if (operation.equals("update")) {
                                 output += " " + listArg[6];
+                            }
 
                             sendToClient(clientName, output);
                         }
+
                         if (ackCount == numServers) {
                             allAcksReceived = true;
                             ackCount %= 4;
@@ -125,7 +160,15 @@ public class CentralServer {
                     acksToWait = numServers;
                     String[] listArg = message.split(" ");
                     String cmd = listArg[0];
-                    if (!cmd.equals("delete")) {
+
+                    if(cmd.equals("search")) {
+                        acksToWait = 4;
+                    }
+                    else if(cmd.equals("repair")) {
+                        acksToWait = 4;
+                        keyToRepair = Integer.valueOf(listArg[1]);
+                    }
+                    else if (!cmd.equals("delete")) {
                         int model = Integer.valueOf(listArg[listArg.length - 2]);
                         if (model == 1)
                             acksToWait = numServers;
