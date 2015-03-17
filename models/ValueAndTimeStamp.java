@@ -4,7 +4,7 @@ package models;
  * Structure that keeps track of a value (on the key-value system) and its corresponding timestamp, a long-type number
  * that makes reference to the exact moment the value was updated.
  *
- * @author Bruno, Cassio, Marco
+ * @author Bruno de Nadai Sarnaglia <denadai2@illinois.edu>
  * @version 1.0
  */
 public class ValueAndTimeStamp {
@@ -41,21 +41,4 @@ public class ValueAndTimeStamp {
         return timeStamp;
     }
 
-    /**
-     * Sets a new value for this object.
-     *
-     * @param value the new value that the key must receive.
-     */
-    public void setValue(Integer value) {
-        this.value = value;
-    }
-
-    /**
-     * Sets a new timestamp for this object, subject to change along with its value.
-     *
-     * @param timeStamp the new long value corresponding to an updated timestamp.
-     */
-    public void setTimeStamp(Long timeStamp) {
-        this.timeStamp = timeStamp;
-    }
 }

@@ -17,21 +17,21 @@ public class Server {
     static String serverAddress;
     static int serverPort;
     static int serverMaxDelay;
-    static Starter config;
+    static Config config;
     static volatile HashMap<Integer, ValueAndTimeStamp> memory;
 
     /**
-     * Creates a server based on a name and a Starter object will all the specifications.
+     * Creates a server based on a name and a Config object will all the specifications.
      *
-     * @param starter the Starter object reading the required configuration file.
+     * @param config the Config object reading the required configuration file.
      * @param name    a name for the server.
      */
-    public Server(Starter starter, String name) {
-        config = starter;
+    public Server(Config config, String name) {
+        Server.config = config;
         serverId = name;
-        serverAddress = config.getAddress(name);
-        serverPort = config.getPort(name);
-        serverMaxDelay = config.getDelay(name);
+        serverAddress = Server.config.getAddress(name);
+        serverPort = Server.config.getPort(name);
+        serverMaxDelay = Server.config.getDelay(name);
         memory = new HashMap<Integer, ValueAndTimeStamp>();
     }
 
@@ -70,7 +70,7 @@ public class Server {
 
                 while (true) {
                     String message = userMessage.readLine();
-                    if(message != null)
+                    if (message != null)
                         executeCommand(message);
                 }
 
@@ -429,12 +429,6 @@ public class Server {
             socket = new Socket(destinationAddress, destinationPort);
             DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
             messageToServer.writeBytes(message);
-
-//            BufferedReader messageFromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//            String[] inputs = messageFromServer.readLine().split(" ");
-
-//            System.out.println(messageFromServer.readLine());
-
             messageToServer.close();
             socket.close();
         } catch (IOException e) {
