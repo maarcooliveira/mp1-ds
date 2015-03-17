@@ -38,19 +38,18 @@ public class CentralServer {
     /**
      * Creates a central server, which sends to and receive messages from all the other servers.
      *
-     * @param config the configuration file that shows where all the servers are.
+     * @param starter the configuration file that shows where all the servers are.
      */
-    public CentralServer(Config config) {
-        CentralServer.config = config;
-        numServers = CentralServer.config.getNames().size() - 1;
+    public CentralServer(Config starter) {
+        config = starter;
+        numServers = config.getNames().size() - 1;
         centralId = "CENTRAL";
-        centralAddress = CentralServer.config.getAddress(centralId);
-        centralPort = CentralServer.config.getPort(centralId);
-        centralMaxDelay = CentralServer.config.getDelay(centralId);
+        centralAddress = config.getAddress(centralId);
+        centralPort = config.getPort(centralId);
+        centralMaxDelay = config.getDelay(centralId);
         memory = new HashMap<Integer, ValueAndTimeStamp>();
         new broadcastManager().start();
         new ServerT().start();
-
     }
 
     /**
@@ -62,12 +61,11 @@ public class CentralServer {
     private static class ServerT extends Thread {
 
         /**
-         * Runs the server thread.
+         * Runs the server thread, receiving messages and responding to them accordingly.
          */
         public void run() {
             try {
                 listener = new ServerSocket(centralPort);
-                PrintWriter messageToClient = null;
                 String clientName = "";
                 while (true) {
                     Socket socket = listener.accept();
@@ -136,7 +134,7 @@ public class CentralServer {
 
                     }
 
-                }
+                } // End of run loop
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -169,14 +167,17 @@ public class CentralServer {
     }
 
     /**
-     * Manages how many messages were received and how many messages to look up to, broadcasting the commands when
-     * necessary.
+     * Manages how many messages were received and how many messages to look up to based on the model adopted for each
+     * command, broadcasting messages when necessary.
      *
      * @author Bruno, Cassio, Marco
      * @version 1.0
      */
     private static class broadcastManager extends Thread {
 
+        /**
+         * Runs the broadcast manager, which interprets the command and broadcast messages accordingly.
+         */
         public void run() {
             while (true) {
                 if (queueMessage.size() > 0 && allAcksReceived) {
@@ -213,9 +214,8 @@ public class CentralServer {
                         e.printStackTrace();
                     }
                 }
-            }
+            } // End of run loop
         }
-
     }
 
     /**

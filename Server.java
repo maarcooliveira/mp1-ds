@@ -334,7 +334,7 @@ public class Server {
             } else if (msg[0].equals("update")) {
                 int key = Integer.valueOf(msg[1]);
                 int value = Integer.valueOf(msg[2]);
-                int oldValue = 0;
+                int oldValue;
 
                 ValueAndTimeStamp oldVal = memory.get(key);
                 oldValue = oldVal.getValue();
@@ -424,7 +424,7 @@ public class Server {
         String destinationAddress = config.getAddress(destinationName);
         int destinationPort = config.getPort(destinationName);
 
-        Socket socket = null;
+        Socket socket;
         try {
             socket = new Socket(destinationAddress, destinationPort);
             DataOutputStream messageToServer = new DataOutputStream(socket.getOutputStream());
