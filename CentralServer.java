@@ -67,6 +67,7 @@ public class CentralServer {
             try {
                 listener = new ServerSocket(centralPort);
                 String clientName = "";
+                FileWriter fw = new FileWriter("output.txt");
                 while (true) {
                     Socket socket = listener.accept();
                     BufferedReader messageFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -75,6 +76,7 @@ public class CentralServer {
 
                     if (listArg[0].equals("exit")) {
                         broadcast("exit");
+                        fw.close();
                         System.exit(0);
                     }
                     if (!listArg[0].equals("ack")) {
@@ -92,7 +94,15 @@ public class CentralServer {
                                 }
                             }
                         }
+                        if (ackCount == 0){
+                            fw.write(String.valueOf(System.nanoTime())); // Beginning of the listener
+                            fw.write("\n");
+                        }
                         ackCount = (ackCount + 1);
+                        if (ackCount == acksToWait){
+                            fw.write(String.valueOf(System.nanoTime())); // End of the listener
+                            fw.write("\n");
+                        }
                         if (listArg[1].equals("search")) {
                             if (listArg.length == 3)
                                 sendToClient(clientName, "ack search " + listArg[2]);
@@ -133,8 +143,7 @@ public class CentralServer {
                         }
 
                     }
-
-                } // End of run loop
+                } // End of while loop
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -216,7 +225,7 @@ public class CentralServer {
                 }
             } // End of run loop
         }
-    }
+    } // End of broadcastManager
 
     /**
      * Broadcasts a message across all servers.
